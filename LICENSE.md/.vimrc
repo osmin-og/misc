@@ -125,3 +125,4 @@ nmap <C-p> :FZF<CR>
 
 let g:ycm_autoclose_preview_window_after_insertion = 1
 let g:ycm_auto_trigger = 0
+nmap gy :YcmCompleter GoTo<CR>
