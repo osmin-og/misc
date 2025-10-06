@@ -1,156 +1,68 @@
-syntax on
+call plug#begin()
+Plug 'lifepillar/vim-gruvbox8'
+Plug 'tpope/vim-fugitive'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+Plug 'ycm-core/YouCompleteMe'
+Plug 'itchyny/lightline.vim'
+Plug 'shinchu/lightline-gruvbox.vim'
+call plug#end()
 
-" set the runtime path to include Vundle and initialize
-set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
-" alternatively, pass a path where Vundle should install plugins
-"call vundle#begin('~/some/path/here')
-
-" let Vundle manage Vundle, required
-Plugin 'VundleVim/Vundle.vim'
-Plugin 'scrooloose/nerdtree'
-Plugin 'itchyny/lightline.vim'
-"Plugin 'altercation/vim-colors-solarized'
-Plugin 'lifepillar/vim-solarized8'
-Plugin 'tpope/vim-fugitive'
-Plugin 'vim-scripts/a.vim'
-Plugin 'prabirshrestha/async.vim'
-Plugin 'prabirshrestha/vim-lsp'
-Plugin 'prabirshrestha/asyncomplete.vim'
-Plugin 'prabirshrestha/asyncomplete-lsp.vim'
-" Plugin 'ajh17/vimcompletesme'
-set rtp+=~/.fzf
-Plugin 'junegunn/fzf.vim'
-
-" All of your Plugins must be added before the following line
-call vundle#end()            " required
-filetype plugin indent on    " required
-
-"Information on the following setting can be found with
-":help set
-set tabstop=4
-set expandtab
-set autoindent
-set shiftwidth=4  "this is the level of autoindent, adjust to taste
-set ruler
-set number
-set backspace=indent,eol,start
-set visualbell
-set switchbuf=usetab,newtab
-set tags=./tags,./../tags,./../../tags,./../../../tags,tags
-set mouse=a
-set vb t_vb=""
-set ttyfast
-set t_Co=256
-set encoding=utf-8
-set incsearch
-
-syntax enable
-set termguicolors
 set background=dark
-colorscheme solarized8
+colorscheme gruvbox8
 
-nmap <C-e> :NERDTreeToggle<CR>
-autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
+set number
+set mouse=a
+set incsearch
+set switchbuf=usetab,newtab
+set expandtab
+set tabstop=4
+set shiftwidth=4
+set completeopt-=preview
+"fixes mouse issue in Windows Terminal
+set ttymouse=sgr
+set backspace=2
+
+"nnoremap <C-p> :GFiles PATH<CR>
+"command! -bang -nargs=? -complete=dir Files
+"      \ call fzf#vim#files(<q-args>, fzf#vim#with_preview({'options': ['--info=inline']}), <bang>0)
+
+"nnoremap RR :Rg <C-r><C-w><CR>
+
+let g:ycm_clangd_binary_path='/usr/bin/clangd-18'
+let g:ycm_autoclose_preview_window_after_completion=1
+let g:ycm_use_ultisnips_completer=0
+let g:ycm_enable_semantic_highlighting=1
+let g:ycm_always_populte_location_list=1
+nnoremap gy :YcmCompleter GoTo<CR>
+nnoremap gd :YcmCompleter GoToDefinition<CR>
+nnoremap <C-f> :YcmCompleter FixIt<CR>
+nnoremap <C-s> <Plug>(YCMFindSymbolInWorkspace)
+nnoremap yc <Plug>(YCMCallHierarchy)
+let g:ycm_key_list_select_completion = ['<Enter>', '<Down>']
+
+function ClangFormatFile()
+      let l:lines="all"
+      py3f /usr/share/clang/clang-format-18/clang-format.py
+endfunction
+
+map <silent> <C-F8> :call ClangFormatFile()<CR>
+nnoremap <A-Down> :m .+1<CR>
+nnoremap <A-Up> :m .-2<CR>
+inoremap <A-Down> <Esc>:m .+1<CR>gi
+inoremap <A-Up> <Esc>:m .-2<CRgi
+vnoremap <A-Down> :m '>+1<CR>gvv
+vnoremap <A-Up> :m '<-2<CR>gv
 
 set laststatus=2
 let g:lightline = {
-      \ 'colorscheme': 'solarized',
-          \ 'active': {
+      \ 'colorscheme': 'gruvbox',
+      \ 'active': {
       \   'left': [ [ 'mode', 'paste' ],
-      \             [ 'fugitive', 'filename' ] ]
+      \             [ 'gitbranch', 'readonly', 'filename', 'modified' ]]
       \ },
       \ 'component_function': {
-      \     'readonly': 'LightlineReadonly',
-      \     'modified': 'LightlineModified',
-      \     'fugitive': 'LightlineFugitive',
-      \     'filename': 'LightlineFilename'
+      \     'gitbranch': 'FugitiveHead'
       \ },
-          \ 'separator': { 'left': "", 'right': "" },
-      \ 'subseparator': { 'left': "|", 'right': "|" }
       \ }
 
-
-function! LightlineModified()
-  if &filetype == "help"
-    return ""
-  elseif &modified
-    return "+"
-  elseif &modifiable
-    return ""
-  else
-    return ""
-  endif
-endfunction
-
-function! LightlineReadonly()
-  if &filetype == "help"
-    return ""
-  elseif &readonly
-    return "\ue0a2"
-  else
-    return ""
-  endif
-endfunction
-
-function! LightlineFugitive()
- if exists("*fugitive#head")
-    let branch = fugitive#head()
-    return branch !=# '' ? "\ue0a0 ".branch : ''
-  endif
-  return ''
-endfunction
-
-function! LightlineFilename()
-  return ('' != LightlineReadonly() ? LightlineReadonly() . ' ' : '') .
-       \ ('' != expand('%:t') ? expand('%:t') : '[No Name]') .
-       \ ('' != LightlineModified() ? ' ' . LightlineModified() : '')
-endfunction\ }
-
-nmap <C-p> :FZF<CR>
-nmap :f<CR> :Ag <C-r><C-w><CR>
-
-" let g:ycm_server_python_interpreter="/opt/bb/bin/python"
-" let g:ycm_autoclose_preview_window_after_insertion = 1
-" nmap gy :YcmCompleter GoTo<CR>
-" map <F9> :YcmCompleter FixIt<CR>
-
-map <C-I> :pyf /opt/bb/share/bde-format/bde-format.py<CR>
-imap <C-I> :pyf /opt/bb/share/bde-format/bde-format.py<CR>
-
-if executable('clangd')
-    augroup lsp_clangd
-        autocmd!
-        autocmd User lsp_setup call lsp#register_server({
-                    \ 'name': 'clangd',
-                    \ 'cmd': {server_info->['clangd', '-background-index']},
-                    \ 'whitelist': ['c', 'cpp', 'objc', 'objcpp'],
-                    \ })
-"        autocmd FileType c setlocal omnifunc=lsp#complete
-"        autocmd FileType cpp setlocal omnifunc=lsp#complete
-"        autocmd FileType objc setlocal omnifunc=lsp#complete
-"        autocmd FileType objcpp setlocal omnifunc=lsp#complete
-    augroup end
-endif
-let g:lsp_diagnostics_echo_cursor = 1
-autocmd FileType c nnoremap <buffer> <silent> gd :LspDefinition<CR>
-autocmd FileType cpp nnoremap <buffer> <silent> gd :LspDefinition<CR>
-autocmd FileType c nnoremap <buffer> <silent> gc :LspDeclaration<CR>
-autocmd FileType cpp nnoremap <buffer> <silent> gc :LspDeclaration<CR>
-
-let g:asyncomplete_auto_popup = 0
-
-function! s:check_back_space() abort
-    let col = col('.') - 1
-    return !col || getline('.')[col - 1]  =~ '\s'
-endfunction
-
-inoremap <silent><expr> <TAB>
-  \ pumvisible() ? "\<C-n>" :
-  \ <SID>check_back_space() ? "\<TAB>" :
-  \ asyncomplete#force_refresh()
-inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
-inoremap <expr> <cr>   pumvisible() ? "\<C-y>" : "\<cr>"
-
-" autocmd FileType c let b:vcm_tab_complete = "omni"
-" autocmd FileType cpp let b:vcm_tab_complete = "omni"
